@@ -3,15 +3,7 @@ package com.example.notizapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,7 +15,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import java.util.*
+
 
 class MainActivity : ComponentActivity() {
 
@@ -43,23 +42,32 @@ fun MyApp() {
 data class ListData(val title: String, val date: Date, val content: String)
 
 private fun readFromDB(): List<ListData> {
-    val list: List<ListData> = List(0) {ListData("hallo", Date( (0..120).random(), 11, 11), "test")}
+    val list: List<ListData> = List(3) {ListData("hallo", Date( (0..120).random(), 11, 11), "test")}
     return list
 }
 
 @Composable
 private fun ListView(list: List<ListData>) {
     val sortedList: List<ListData> = list.sortedByDescending { it.date }
-    
-    LazyColumn(modifier = Modifier.padding(vertical = 4.dp)) {
+
+    LazyColumn() {
         items(items = sortedList) { listItem ->
             ListItem(title = listItem.title, date = listItem.date) // TODO: Lesen aus DB
         }
     }
-    
-    Button(onClick = { /*TODO*/ }) {
-        
-    }
+    ExtendedFloatingActionButtonDemo()
+
+
+}
+
+@Composable
+fun ExtendedFloatingActionButtonDemo() {
+    ExtendedFloatingActionButton(
+        icon = { Icon(Icons.Filled.Favorite,"") },
+        text = { Text("FloatingActionButton") },
+        onClick = { /*do something*/ },
+        elevation = FloatingActionButtonDefaults.elevation(8.dp)
+    )
 }
 
 @Composable
