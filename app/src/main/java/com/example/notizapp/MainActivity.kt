@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -13,7 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
@@ -23,6 +27,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import java.util.*
 import androidx.navigation.navArgument
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.navigation.Navigation.findNavController
 
 
 class MainActivity : ComponentActivity() {
@@ -40,7 +50,7 @@ fun MyApp() {
 }
 
 @Composable
-fun Navigation() {
+fun Navigation() { //TODO: use navController.popBackStack() at the correct position to prevent navigating back while in listScreen
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Screen.ListScreen.route) {
         composable(route = Screen.ListScreen.route) {
@@ -92,11 +102,32 @@ fun ListScreen(navController: NavController, list: List<ListData>) {
 
 @Composable
 fun AddEntryScreen(navController: NavController) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Add Entry")
-        FloatingActionButton(onClick = { navController.navigate(Screen.ListScreen.route) }) {
+    var title: String by remember { mutableStateOf("") }
+    val titleTextUpdate = { data: String ->
+        title = data
+    }
+    var titleTextError by remember { mutableStateOf(false) }
+
+    var content: String by remember { mutableStateOf("") }
+    val contentTextUpdate = { data: String ->
+        content = data
+    }
+
+    ValidationsUI(
+        title,
+        titleTextUpdate,
+        titleTextError,
+        content,
+        contentTextUpdate,
+        navController
+    ) {
+        titleTextError = title.isEmpty()
+        if (!titleTextError) {
+            //TODO: Add entry in DB
+            navController.navigate(Screen.ListScreen.route)
         }
     }
+
 
 }
 
@@ -106,23 +137,70 @@ fun DetailScreen(navController: NavController, title: String?, content: String?)
         Text(text = "Details")
         Text(text = "Selected Entry: $title")
         Text(text = "Content: $content")
+
         FloatingActionButton(onClick = { navController.navigate(Screen.ListScreen.route) }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_menu_revert),
+                contentDescription = "Back"
+            )
+        }
+        FloatingActionButton(onClick = {
+            //TODO: Remove entry from DB
+            navController.navigate(Screen.ListScreen.route)
+        }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_menu_delete),
+                contentDescription = "Delete"
+            )
         }
     }
 
 }
 
-data class ListData(val title: String, val date: Date, val content: String)
-
-private fun readFromDB(): List<ListData> {
-    val list: List<ListData> = List(4) {
-        ListData(
-            "hallo" + (0..120).random().toString(),
-            Date((0..120).random(), 11, 11),
-            (0..120).random().toString()
+@Composable
+fun ValidationsUI(
+    title: String,
+    titleUpdate: (String) -> Unit,
+    titleError: Boolean,
+    content: String,
+    contentUpdate: (String) -> Unit,
+    navController: NavController,
+    validate: () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = "Add Entry")
+        OutlineTextFieldWithErrorView(
+            value = title,
+            onValueChange = titleUpdate,
+            singleLine = true,
+            label = { Text("Title") },
+            isError = titleError,
+            errorMsg = "Title must not be empty"
         )
+
+        OutlinedTextField(
+            value = content,
+            onValueChange = contentUpdate,
+            singleLine = false,
+            label = { Text("Content") })
+
+        FloatingActionButton(onClick = { navController.navigate(Screen.ListScreen.route) }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_menu_revert),
+                contentDescription = "Back"
+            )
+        }
+
+        FloatingActionButton(onClick = {
+            validate()
+        }) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_menu_save),
+                contentDescription = "Submit"
+            )
+
+        }
     }
-    return list
 }
 
 @Composable
@@ -151,4 +229,85 @@ private fun ListItem(title: String, date: Date, content: String, navController: 
             }
         }
     }
+}
+
+@Composable
+fun OutlineTextFieldWithErrorView(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    readOnly: Boolean = false,
+    textStyle: TextStyle = LocalTextStyle.current,
+    label: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    isError: Boolean = false,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    singleLine: Boolean = false,
+    maxLines: Int = Int.MAX_VALUE,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    shape: Shape = MaterialTheme.shapes.small,
+    colors: TextFieldColors = TextFieldDefaults.outlinedTextFieldColors(),
+    errorMsg: String = ""
+) {
+
+    Column(
+        modifier = Modifier
+            .padding(
+                bottom = if (isError) {
+                    0.dp
+                } else {
+                    10.dp
+                }
+            )
+    ) {
+        OutlinedTextField(
+            enabled = enabled,
+            readOnly = readOnly,
+            value = value,
+            onValueChange = onValueChange,
+            modifier = modifier,
+            singleLine = singleLine,
+            textStyle = textStyle,
+            label = label,
+            placeholder = placeholder,
+            leadingIcon = leadingIcon,
+            trailingIcon = trailingIcon,
+            isError = isError,
+            visualTransformation = visualTransformation,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            maxLines = maxLines,
+            interactionSource = interactionSource,
+            shape = shape,
+            colors = colors
+        )
+
+        if (isError) {
+            Text(
+                text = errorMsg,
+                color = MaterialTheme.colors.error,
+                style = MaterialTheme.typography.caption,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
+    }
+
+}
+
+data class ListData(val title: String, val date: Date, val content: String)
+
+private fun readFromDB(): List<ListData> {
+    val list: List<ListData> = List(4) {
+        ListData(
+            "hallo" + (0..120).random().toString(),
+            Date((0..120).random(), 11, 11),
+            (0..120).random().toString()
+        )
+    }
+    return list
 }
