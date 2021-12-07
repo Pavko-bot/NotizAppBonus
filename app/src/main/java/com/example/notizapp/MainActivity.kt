@@ -1,9 +1,12 @@
 package com.example.notizapp
 
 import android.R
+import android.graphics.fonts.FontStyle
 import android.os.Bundle
+import android.view.RoundedCorner
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -14,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -29,9 +33,15 @@ import java.util.*
 import androidx.navigation.navArgument
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle.Companion.Italic
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.Navigation.findNavController
 
 
@@ -83,7 +93,15 @@ fun Navigation() { //TODO: use navController.popBackStack() at the correct posit
 fun ListScreen(navController: NavController, list: List<ListData>) {
     val sortedList: List<ListData> = list.sortedByDescending { it.date }
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(Color(0xff91a4fc)),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Text(text = "To-Dos",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
+            )
         LazyColumn() {
             items(items = sortedList) { listItem ->
                 ListItem(
@@ -91,10 +109,11 @@ fun ListScreen(navController: NavController, list: List<ListData>) {
                     date = listItem.date,
                     content = listItem.content,
                     navController = navController
+
                 ) // TODO: Read from DB
-            }
-        }
-        FloatingActionButton(onClick = { navController.navigate(Screen.AddEntryScreen.route) }) {
+            } }
+
+        FloatingActionButton(onClick = { navController.navigate(Screen.AddEntryScreen.route) },backgroundColor = Color.LightGray, modifier = Modifier.padding(horizontal = 40.dp)) {
             Icon(painter = painterResource(id = R.drawable.ic_menu_add), contentDescription = "Add")
         }
     }
@@ -133,12 +152,62 @@ fun AddEntryScreen(navController: NavController) {
 
 @Composable
 fun DetailScreen(navController: NavController, title: String?, content: String?) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Details")
-        Text(text = "Selected Entry: $title")
-        Text(text = "Content: $content")
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(Color(0xff91a4fc))
+        .padding(30.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = "Details",
+            fontSize = 30.sp,
+        fontWeight = FontWeight.Bold,
+        )
+        Column( modifier = Modifier
+            .absolutePadding(top = 16.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.LightGray)
+            .padding(16.dp)
 
-        FloatingActionButton(onClick = { navController.navigate(Screen.ListScreen.route) }) {
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "Selected Entry: ",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "$title",
+                    fontSize = 20.sp,
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "Content: ",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "$content",
+                    fontSize = 20.sp,
+                )
+            }
+        }
+
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+            horizontalArrangement = Arrangement.Center
+            ){
+
+        FloatingActionButton(onClick = { navController.navigate(Screen.ListScreen.route) }, modifier = Modifier.padding(16.dp),backgroundColor = Color.LightGray) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_menu_revert),
                 contentDescription = "Back"
@@ -147,11 +216,12 @@ fun DetailScreen(navController: NavController, title: String?, content: String?)
         FloatingActionButton(onClick = {
             //TODO: Remove entry from DB
             navController.navigate(Screen.ListScreen.route)
-        }) {
+        }, modifier = Modifier.padding(16.dp),backgroundColor = Color.LightGray) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_menu_delete),
                 contentDescription = "Delete"
             )
+        }
         }
     }
 
@@ -167,8 +237,14 @@ fun ValidationsUI(
     navController: NavController,
     validate: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Add Entry")
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(Color(0xff91a4fc))
+        .padding(30.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = "Add Entry",
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold)
         OutlineTextFieldWithErrorView(
             value = title,
             onValueChange = titleUpdate,
@@ -182,23 +258,31 @@ fun ValidationsUI(
             value = content,
             onValueChange = contentUpdate,
             singleLine = false,
-            label = { Text("Content") })
+            label = { Text("Content") }
+        )
 
-        FloatingActionButton(onClick = { navController.navigate(Screen.ListScreen.route) }) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_menu_revert),
-                contentDescription = "Back"
-            )
-        }
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
 
-        FloatingActionButton(onClick = {
-            validate()
-        }) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_menu_save),
-                contentDescription = "Submit"
-            )
+            FloatingActionButton(onClick = { navController.navigate(Screen.ListScreen.route) }, modifier = Modifier.padding(16.dp),backgroundColor = Color.LightGray) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_menu_revert),
+                    contentDescription = "Back"
+                )
+            }
 
+            FloatingActionButton(onClick = {
+                validate()
+            }, modifier = Modifier.padding(16.dp),backgroundColor = Color.LightGray) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_menu_save),
+                    contentDescription = "Submit"
+                )
+
+            }
         }
     }
 }
@@ -211,20 +295,24 @@ private fun ListItem(title: String, date: Date, content: String, navController: 
     val extraPadding = if (expanded.value) 48.dp else 0.dp
 
     val enterDetailScreen = { navController.navigate(Screen.DetailScreen.withArgs(title, content)) }
-
     Surface(
-        color = MaterialTheme.colors.primary,
+        color = Color.LightGray,
         modifier = Modifier
             .padding(vertical = 4.dp, horizontal = 8.dp)
             .clickable(onClick = enterDetailScreen)
+            .clip(RoundedCornerShape(16.dp))
     ) {
+
+
         Row(modifier = Modifier.padding(24.dp)) {
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .padding(bottom = extraPadding)
             ) {
-                Text(text = title)
+                Text(text = title,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold)
                 Text(text = date.toString())
             }
         }
