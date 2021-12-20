@@ -16,7 +16,7 @@ class AddEntryScreenViewModel: ViewModel(){
     fun validateNotYetExisting(title: String){
         // read from DB and save in array
         // check if title does not yet exist in array
-        //_showErrorMessage.setValue(isAlreadyExisting)
+        //_showErrorMessage.value = isAlreadyExisting
     }
 
     private var _title: MutableLiveData<String> = MutableLiveData("")

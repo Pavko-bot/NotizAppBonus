@@ -72,7 +72,7 @@ fun ValidationsUI(
             singleLine = true,
             label = { Text("Title") },
             isError = showError,
-            errorMsg = "Title must not be or it already exists"
+            errorMsg = "Title must not be empty or it already exists"
         )
 
         OutlinedTextField(

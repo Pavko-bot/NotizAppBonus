@@ -15,25 +15,25 @@ fun ViewModelNavigationGraph(
 ) {
     NavHost(navController = navController, startDestination = startDestination){
         composable(Screen.ListScreen.route) {
-            ListScreen(navController = navController)
+            ListScreen(navController)
         }
         composable(route = Screen.AddEntryScreen.route) {
-            AddEntryScreen(navController = navController)
+            AddEntryScreen(navController)
         }
         composable(route = Screen.DetailScreen.route + "/{title}/{content}", //TODO: Maybe add date to the route to differentiate between entries
             arguments = listOf(
                 navArgument("title") {
-                type = NavType.StringType;
+                type = NavType.StringType
                 nullable = false
             }, navArgument("content")
             {
-                type = NavType.StringType;
+                type = NavType.StringType
                 nullable = true
             }
             )
         ) { entry ->
             DetailScreen(
-                navController = navController,
+                navController,
                 title = entry.arguments?.getString("title"),
                 content = entry.arguments?.getString("content")
             )
