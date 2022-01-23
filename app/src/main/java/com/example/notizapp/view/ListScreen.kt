@@ -1,12 +1,9 @@
-package com.example.notizapp
+package com.example.notizapp.view
 
 import android.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,42 +24,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
-import java.util.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.navigation.NavHostController
+import com.example.notizapp.Screens
+import com.example.notizapp.model.Notiz
+import com.example.notizapp.viewmodel.ListScreenViewModel
 
 @Composable
-fun ListScreen(navController: NavHostController, viewModel: ListScreenViewModel = viewModel()) {
-    viewModel.readAndSort()
-    val sortedList by viewModel.sortedList.observeAsState(listOf<ListScreenViewModel.ListData>())
+fun ListScreen(navController: NavHostController, listScreenViewModel: ListScreenViewModel) {
+    val notizen by listScreenViewModel.notizen.observeAsState(emptyList())
+    notizen.sortedByDescending { it.creationDate }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xff91a4fc)),
+            .background(Color(0xff91a4fc))
+            .padding(horizontal = 15.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Text(
-            text = "To-Dos",
+            text = "To-Do's",
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
         )
         LazyColumn() {
-            items(items = sortedList) { listItem ->
+            items(items = notizen) { notiz ->
                 ListItem(
-                    title = listItem.title,
-                    date = listItem.date,
-                    content = listItem.content,
+                    notiz = notiz,
                     navController = navController
-
-                ) // TODO: Read from DB
+                )
             }
         }
 
         FloatingActionButton(
-            onClick = { navController.navigate(Screen.AddEntryScreen.route) },
+            onClick = { navController.navigate(Screens.AddEntryScreen.route) },
             backgroundColor = Color.LightGray,
             modifier = Modifier.padding(horizontal = 40.dp)
         ) {
@@ -75,34 +72,40 @@ fun ListScreen(navController: NavHostController, viewModel: ListScreenViewModel 
 }
 
 @Composable
-private fun ListItem(title: String, date: Date, content: String, navController: NavController) {
+private fun ListItem(notiz: Notiz, navController: NavController) {
 
-    val expanded = remember { mutableStateOf(false) }
 
-    val extraPadding = if (expanded.value) 48.dp else 0.dp
-
-    val enterDetailScreen = { navController.navigate(Screen.DetailScreen.withArgs(title, content)) }
+    val enterDetailScreen = {
+        navController.navigate(
+            Screens.DetailScreen.withArgs(
+                notiz.id.toString(),
+                notiz.title,
+                notiz.content + " ",
+                notiz.creationDate
+            )
+        )
+    }
     Surface(
         color = Color.LightGray,
         modifier = Modifier
-            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(8.dp))
             .clickable(onClick = enterDetailScreen)
-            .clip(RoundedCornerShape(16.dp))
     ) {
 
 
-        Row(modifier = Modifier.padding(24.dp)) {
+        Row(modifier = Modifier.padding(16.dp)) {
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(bottom = extraPadding)
             ) {
                 Text(
-                    text = title,
+                    text = notiz.title,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.absolutePadding(bottom = 4.dp)
                 )
-                Text(text = date.toString())
+                Text(text = notiz.creationDate)
             }
         }
     }

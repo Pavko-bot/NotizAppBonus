@@ -1,6 +1,8 @@
-package com.example.notizapp
+package com.example.notizapp.view
 
 import android.R
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -19,28 +21,34 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.navigation.NavHostController
+import com.example.notizapp.Screens
+import com.example.notizapp.viewmodel.AddEntryScreenViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AddEntryScreen(navController: NavHostController, viewModel: AddEntryScreenViewModel = viewModel()) {
+fun AddEntryScreen(
+    navController: NavHostController,
+    addEntryScreenViewModel: AddEntryScreenViewModel
+) {
 
-    val showErrorMessage by viewModel.showErrorMessage.observeAsState(false)
-    val title by viewModel.title.observeAsState("")
-    val content by viewModel.content.observeAsState("")
+    val showErrorMessage by addEntryScreenViewModel.showErrorMessage.observeAsState(false)
+    val title by addEntryScreenViewModel.title.observeAsState("")
+    val content by addEntryScreenViewModel.content.observeAsState("")
 
     ValidationsUI(
-        viewModel,
+        addEntryScreenViewModel,
         title,
         showErrorMessage,
         content,
         navController,
     ) {
-        viewModel.validateNotEmpty(title)
+        addEntryScreenViewModel.validateNotEmpty(title)
         if (!showErrorMessage) {
-            viewModel.addEntry(title, content)
-            navController.navigate(Screen.ListScreen.route)
+            addEntryScreenViewModel.addNotiz(title, content)
+            addEntryScreenViewModel.deleteInputs()
+            navController.navigate(Screens.ListScreen.route)
         }
     }
 }
@@ -58,7 +66,7 @@ fun ValidationsUI(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xff91a4fc))
-            .padding(30.dp),
+            .padding(horizontal = 15.dp, vertical = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -72,14 +80,18 @@ fun ValidationsUI(
             singleLine = true,
             label = { Text("Title") },
             isError = showError,
-            errorMsg = "Title must not be empty or it already exists"
+            errorMsg = "Title can not be empty",
+            modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
             value = content,
             onValueChange = viewModel.updateContent,
             singleLine = false,
-            label = { Text("Content") }
+            label = { Text("Content") },
+            modifier = Modifier
+                .weight(2F)
+                .fillMaxWidth()
         )
 
         Row(
@@ -90,8 +102,8 @@ fun ValidationsUI(
         ) {
 
             FloatingActionButton(
-                onClick = { navController.navigate(Screen.ListScreen.route) },
-                modifier = Modifier.padding(16.dp),
+                onClick = { navController.navigate(Screens.ListScreen.route) },
+                modifier = Modifier.absolutePadding(right = 84.dp),
                 backgroundColor = Color.LightGray
             ) {
                 Icon(
@@ -100,9 +112,13 @@ fun ValidationsUI(
                 )
             }
 
-            FloatingActionButton(onClick = {
-                validate()
-            }, modifier = Modifier.padding(16.dp), backgroundColor = Color.LightGray) {
+            FloatingActionButton(
+                onClick = {
+                    validate()
+                },
+                modifier = Modifier.absolutePadding(left = 84.dp),
+                backgroundColor = Color.LightGray
+            ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_menu_save),
                     contentDescription = "Submit"

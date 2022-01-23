@@ -1,9 +1,9 @@
 package com.example.notizapp
 
-sealed class Screen(val route: String){
-    object ListScreen: Screen("list_screen")
-    object AddEntryScreen: Screen("add_entry_screen")
-    object DetailScreen: Screen("detail_screen")
+sealed class Screens(val route: String) {
+    object ListScreen : Screens("list_screen")
+    object AddEntryScreen : Screens("add_entry_screen")
+    object DetailScreen : Screens("detail_screen")
 
     fun withArgs(vararg args: String): String {
         return buildString {
